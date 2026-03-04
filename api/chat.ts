@@ -16,6 +16,10 @@ export default async function handler(req: any, res: any) {
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL || "openrouter/free";
+  const fallbackModels = (process.env.OPENROUTER_FALLBACK_MODELS || "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
   const siteUrl = process.env.OPENROUTER_SITE_URL || "https://co.waiyan.dev";
   const appName = process.env.OPENROUTER_APP_NAME || "Container Orchestration";
   if (!apiKey) {
@@ -54,42 +58,50 @@ export default async function handler(req: any, res: any) {
       { role: "user", content: userMessage },
     ];
 
-    const openrouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": siteUrl,
-        "X-Title": appName,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.4,
-      }),
-    });
+    const modelCandidates = [model, ...fallbackModels.filter((m) => m !== model)];
+    const attemptErrors: string[] = [];
+    let finalData: any = null;
 
-    if (!openrouterRes.ok) {
+    for (const candidateModel of modelCandidates) {
+      const openrouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": siteUrl,
+          "X-Title": appName,
+        },
+        body: JSON.stringify({
+          model: candidateModel,
+          messages,
+          temperature: 0.4,
+        }),
+      });
+
+      if (openrouterRes.ok) {
+        finalData = await openrouterRes.json();
+        break;
+      }
+
       const errorText = await openrouterRes.text();
       let detail = errorText;
       try {
         const parsed = JSON.parse(errorText);
-        detail =
-          parsed?.error?.message ||
-          parsed?.message ||
-          errorText;
+        detail = parsed?.error?.message || parsed?.message || errorText;
       } catch {
         // Keep raw text if it's not JSON
       }
+      attemptErrors.push(`${candidateModel} -> (${openrouterRes.status}) ${detail}`);
+    }
 
-      res.status(openrouterRes.status).json({
-        message: `OpenRouter request failed (${openrouterRes.status}): ${detail}`,
+    if (!finalData) {
+      res.status(400).json({
+        message: `OpenRouter request failed for all models: ${attemptErrors.join(" | ")}`,
       });
       return;
     }
 
-    const data = await openrouterRes.json();
-    const text = data?.choices?.[0]?.message?.content?.trim();
+    const text = finalData?.choices?.[0]?.message?.content?.trim();
     res.status(200).json({ message: text || "I could not generate a response." });
   } catch (error: any) {
     res.status(500).json({
