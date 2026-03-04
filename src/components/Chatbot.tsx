@@ -162,7 +162,7 @@ interface Message {
   timestamp: Date;
 }
 
-const API_URL = import.meta.env.VITE_CHAT_API_URL || 'https://ghost-tan.vercel.app/api/chat';
+const API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat';
 
 export const Chatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
