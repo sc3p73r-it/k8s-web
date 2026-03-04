@@ -14,10 +14,12 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || "openrouter/free";
+  const siteUrl = process.env.OPENROUTER_SITE_URL || "https://co.waiyan.dev";
+  const appName = process.env.OPENROUTER_APP_NAME || "Container Orchestration";
   if (!apiKey) {
-    res.status(500).json({ message: "OPENAI_API_KEY is not set on the server." });
+    res.status(500).json({ message: "OPENROUTER_API_KEY is not set on the server." });
     return;
   }
 
@@ -52,11 +54,13 @@ export default async function handler(req: any, res: any) {
       { role: "user", content: userMessage },
     ];
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const openrouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": siteUrl,
+        "X-Title": appName,
       },
       body: JSON.stringify({
         model,
@@ -65,8 +69,8 @@ export default async function handler(req: any, res: any) {
       }),
     });
 
-    if (!openaiRes.ok) {
-      const errorText = await openaiRes.text();
+    if (!openrouterRes.ok) {
+      const errorText = await openrouterRes.text();
       let detail = errorText;
       try {
         const parsed = JSON.parse(errorText);
@@ -78,13 +82,13 @@ export default async function handler(req: any, res: any) {
         // Keep raw text if it's not JSON
       }
 
-      res.status(openaiRes.status).json({
-        message: `OpenAI request failed (${openaiRes.status}): ${detail}`,
+      res.status(openrouterRes.status).json({
+        message: `OpenRouter request failed (${openrouterRes.status}): ${detail}`,
       });
       return;
     }
 
-    const data = await openaiRes.json();
+    const data = await openrouterRes.json();
     const text = data?.choices?.[0]?.message?.content?.trim();
     res.status(200).json({ message: text || "I could not generate a response." });
   } catch (error: any) {
