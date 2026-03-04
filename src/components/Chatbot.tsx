@@ -230,7 +230,16 @@ export const Chatbot: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        let backendMessage = `API error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (typeof errorData?.message === 'string') {
+            backendMessage = errorData.message;
+          }
+        } catch {
+          // ignore JSON parsing errors and keep status-based message
+        }
+        throw new Error(backendMessage);
       }
 
       const data = await response.json();
@@ -245,9 +254,10 @@ export const Chatbot: React.FC = () => {
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Chat error:', error);
+      const errorText = error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.';
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: `Chatbot error: ${errorText}`,
         sender: 'bot',
         timestamp: new Date(),
       };
