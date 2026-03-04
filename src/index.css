@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* design tokens — K8s Demo ocean/teal theme */
+@theme {
+  /* k8s-demo scale */
+  --color-pdso-50: rgb(240 253 250);
+  --color-pdso-100: rgb(204 251 241);
+  --color-pdso-200: rgb(153 246 228);
+  --color-pdso-300: rgb(94 234 212);
+  --color-pdso-400: rgb(45 212 191);
+  --color-pdso-500: rgb(20 184 166);
+  --color-pdso-600: rgb(13 148 136);
+  --color-pdso-700: rgb(15 118 110);
+  --color-pdso-800: rgb(17 94 89);
+  --color-pdso-900: rgb(19 78 74);
+  --color-pdso-950: rgb(4 47 46);
+  /* background.primary */
+  --color-bg-primary: rgb(13 148 136);
+  /* text */
+  --color-text-default: rgb(6 24 24);
+  --color-text-muted: rgb(82 82 91);
+  --color-text-inverse: rgb(243 244 246);
+  /* border */
+  --color-border-default: rgb(228 228 231);
+  --color-border-magic: rgb(245 158 11);
+  --color-border-magic-muted: rgb(253 230 138);
+}
+
+/* Primary button gradient */
+.btn-primary-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+  box-shadow: 0 8px 24px #0d948855;
+}
+.btn-primary-gradient:hover {
+  background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
+}
+.btn-primary-gradient:active {
+  background: linear-gradient(135deg, #115e59 0%, #155e75 100%);
+}
+
+/* Subtle background glow pulse for depth */
+@keyframes k8s-glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.k8s-glow-orb {
+  animation: k8s-glow-pulse 8s ease-in-out infinite;
+}
+
+.k8s-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(94 234 212 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(94 234 212 / 0.08) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 85%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .k8s-glow-orb,
+  .k8s-glow-orb * {
+    animation: none !important;
+  }
+}
