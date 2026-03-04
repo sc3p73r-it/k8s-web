@@ -15,6 +15,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
   if (!apiKey) {
     res.status(500).json({ message: "OPENAI_API_KEY is not set on the server." });
     return;
@@ -58,7 +59,7 @@ export default async function handler(req: any, res: any) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model,
         messages,
         temperature: 0.4,
       }),
@@ -66,9 +67,19 @@ export default async function handler(req: any, res: any) {
 
     if (!openaiRes.ok) {
       const errorText = await openaiRes.text();
+      let detail = errorText;
+      try {
+        const parsed = JSON.parse(errorText);
+        detail =
+          parsed?.error?.message ||
+          parsed?.message ||
+          errorText;
+      } catch {
+        // Keep raw text if it's not JSON
+      }
+
       res.status(openaiRes.status).json({
-        message: "OpenAI request failed",
-        error: errorText,
+        message: `OpenAI request failed (${openaiRes.status}): ${detail}`,
       });
       return;
     }
