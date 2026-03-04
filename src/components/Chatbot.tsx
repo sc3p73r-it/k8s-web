@@ -169,7 +169,7 @@ export const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm Ghost, your Kubernetes learning assistant. Ask me anything about Kubernetes, containers, pods, services, or any concept you're learning!",
+      text: "Hi! I'm vitaltech bot, your Kubernetes learning assistant. Ask me anything about Kubernetes, containers, pods, services, or any concept you're learning!",
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -292,7 +292,7 @@ export const Chatbot: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Bot className="text-pdso-300" size={20} />
                 <h3 className="text-white font-semibold" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                  Ghost
+                  vitaltech bot
                 </h3>
               </div>
               <button
